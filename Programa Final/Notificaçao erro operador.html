@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Texto de Erro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            width: 300px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ff00;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: #333;
+            color: #fff;
+            spellcheck: true; /* Ativa a correção ortográfica */
+        }
+        button {
+            width: 48%;
+            padding: 10px;
+            margin: 5px 1%;
+            border: none;
+            border-radius: 5px;
+            background-color: #00ff00;
+            color: #000;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            position: relative;
+        }
+        button:hover {
+            background-color: #00cc00;
+            transform: scale(1.05);
+        }
+        #generateBtn, #copyBtn {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: #fff;
+        }
+        #generateBtn:hover, #copyBtn:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .notification {
+            background-color: #00ff00;
+            color: #000;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        .error {
+            background-color: #ff0000;
+        }
+        .selected {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .selected::after {
+            content: '\f00c'; /* Font Awesome tick icon */
+            font-family: 'Font Awesome 6 Free'; 
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de Texto</h1>
+        <div class="button-container">
+            <button id="bomDiaBtn">Bom dia</button>
+            <button id="boaTardeBtn">Boa tarde</button>
+        </div>
+        <label for="operador">Operador:</label>
+        <input type="text" id="operador" spellcheck="true">
+        <label for="cliente">Nome do Cliente:</label>
+        <input type="text" id="cliente" spellcheck="true">
+        <label for="os">Número da OS:</label>
+        <input type="text" id="os" spellcheck="true">
+        <label for="pedido">Pedido:</label>
+        <input type="text" id="pedido" spellcheck="true">
+        <label for="versao">Versão:</label>
+        <input type="text" id="versao" spellcheck="true">
+        <label for="erro">Descreva o Erro:</label>
+        <textarea id="erro" rows="4" spellcheck="true"></textarea>
+        <button id="generateBtn">Gerar Texto</button>
+        <button id="copyBtn">Copiar Texto</button>
+        <div id="output"></div>
+        <div id="notification" class="notification"></div>
+    </div>
+    <script>
+        const bomDiaBtn = document.getElementById('bomDiaBtn');
+        const boaTardeBtn = document.getElementById('boaTardeBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const operadorInput = document.getElementById('operador');
+        const clienteInput = document.getElementById('cliente');
+        const osInput = document.getElementById('os');
+        const pedidoInput = document.getElementById('pedido');
+        const versaoInput = document.getElementById('versao');
+        const erroInput = document.getElementById('erro');
+        const outputDiv = document.getElementById('output');
+        const notificationDiv = document.getElementById('notification');
+        let saudacao = '';
+
+        function updateSaudacao(selectedBtn, otherBtn) {
+            saudacao = selectedBtn === bomDiaBtn ? 'Bom dia' : 'Boa tarde';
+            selectedBtn.classList.add('selected');
+            otherBtn.classList.remove('selected');
+        }
+
+        bomDiaBtn.addEventListener('click', () => {
+            updateSaudacao(bomDiaBtn, boaTardeBtn);
+        });
+
+        boaTardeBtn.addEventListener('click', () => {
+            updateSaudacao(boaTardeBtn, bomDiaBtn);
+        });
+
+        generateBtn.addEventListener('click', () => {
+            const operador = operadorInput.value.trim();
+            const cliente = clienteInput.value.trim();
+            const os = osInput.value.trim();
+            const pedido = pedidoInput.value.trim();
+            const versao = versaoInput.value.trim();
+            const erro = erroInput.value.trim();
+
+            if (operador && cliente && os && pedido && versao && erro) {
+                const texto = `${saudacao} ${operador}.\n          ${cliente}\nOS ${os} - v${versao} - p${pedido}\n- ${erro}`;
+                outputDiv.innerText = texto;
+                notificationDiv.className = 'notification';
+                notificationDiv.innerText = 'Texto gerado com sucesso!';
+                notificationDiv.style.display = 'block';
+            } else {
+                notificationDiv.className = 'notification error';
+                notificationDiv.innerText = 'Por favor, preencha todos os campos.';
+                notificationDiv.style.display = 'block';
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = outputDiv.innerText;
+            if (textToCopy) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    notificationDiv.className = 'notification';
+                    notificationDiv.innerText = 'Texto copiado para a área de transferência!';
+                    notificationDiv.style.display = 'block';
+                }).catch(err => {
+                    console.error('Erro ao copiar texto: ', err);
+                });
+            } else {
+                notificationDiv.className = 'notification error';
+                notificationDiv.innerText = 'Nenhum texto para copiar.';
+                notificationDiv.style.display = 'block';
+            }
+        });
+
+        // Ocultar a notificação após 5 segundos
+        setTimeout(() => {
+            notificationDiv.style.display = 'none';
+        }, 5000);
+    </script>
+</body>
+</html>

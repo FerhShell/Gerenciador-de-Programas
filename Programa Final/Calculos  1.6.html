@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Cálculos em Milímetros</title>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<style>
+    /* Estilos gerais */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .calculator-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        padding: 20px;
+    }
+
+    .calculator {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        overflow: hidden;
+    }
+
+    .calculator:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+    .calculator h2 {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        text-align: center;
+        color: #b71c1c;
+        text-decoration: underline;
+    }
+
+    .calculator label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .calculator input, .calculator select {
+        width: calc(100% - 16px); /* Ajuste para o padding */
+        padding: 8px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+
+    .calculator button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        margin-right: 10px;
+    }
+
+    .calculator button:hover {
+        background-color: #45a049;
+    }
+
+    .resultado {
+        font-size: 1.5em;
+        color: #1e88e5;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    .assinatura {
+        font-family: 'Great Vibes', cursive;
+        font-size: 1em;
+        color: #000;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .rodape {
+        font-size: 0.9em;
+        text-align: center;
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+    }
+
+    .rodape strong {
+        font-family: 'Great Vibes', cursive;
+    }
+
+    .cyan { color: cyan; }
+    .magenta { color: magenta; }
+    .yellow { color: yellow; }
+    .black { color: black; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="calculator-container">
+    <!-- Seção para cálculo de Distorção -->
+    <div class="calculator" id="distorcao">
+        <h2>Distorção</h2>
+        <label for="tamanho_embalagem">Tamanho da Embalagem (mm):</label>
+        <input type="number" id="tamanho_embalagem">
+        <label for="fechamento">Fechamento (mm):</label>
+        <input type="number" id="fechamento">
+        <label for="engrenagens">Desenvolvimento:</label>
+        <input type="number" id="engrenagens">
+        <button onclick="calcularDistorcao()">Calcular</button>
+        <button onclick="limparDistorcao()">Limpar</button>
+        <p id="resultado_distorcao" class="resultado"></p>
+    </div>
+
+    <!-- Seção para cálculo de Distorção com Número de Pistas -->
+    <div class="calculator" id="distorcao_pistas">
+        <h2>Distorção com Número de Pistas</h2>
+        <label for="numero_pistas">Número de Pistas:</label>
+        <input type="number" id="numero_pistas">
+        <label for="distancia_pistas">Distância entre Pistas (mm):</label>
+        <input type="number" id="distancia_pistas">
+        <button onclick="calcularDistorcaoPistas()">Calcular</button>
+        <button onclick="limparDistorcaoPistas()">Limpar</button>
+        <p id="resultado_distorcao_pistas" class="resultado"></p>
+    </div>
+
+    <!-- Novo box para cálculo de Z -->
+    <div class="calculator" id="calculo_z">
+        <h2>Cálculo de Z</h2>
+        <label for="z_input">Valor de Z:</label>
+        <input type="number" id="z_input">
+        <button onclick="calcularZModuloUmOitavo()">Z módulo 1/8</button>
+        <button onclick="calcularZModuloUm()">Z módulo 1</button>
+        <button onclick="limparCalculoZ()">Limpar</button>
+        <p id="resultado_z" class="resultado"></p>
+    </div>
+
+    <!-- Novo box para cálculo de LPC para LPI -->
+    <div class="calculator" id="calculo_lpc_lpi">
+        <h2>Cálculo de LPC para LPI</h2>
+        <label for="lpc_input">Valor de LPC:</label>
+        <input type="number" id="lpc_input">
+        <button onclick="calcularLPCparaLPI()">Calcular LPI</button>
+        <button onclick="limparCalculoLPC_LPI()">Limpar</button>
+        <p id="resultado_lpi" class="resultado"></p>
+    </div>
+
+    <!-- Novo box para cálculo de LPI para LPC -->
+    <div class="calculator" id="calculo_lpi_lpc">
+        <h2>Cálculo de LPI para LPC</h2>
+        <label for="lpi_input">Valor de LPI:</label>
+        <input type="number" id="lpi_input">
+        <button onclick="calcularLPIparaLPC()">Calcular LPC</button>
+        <button onclick="limparCalculoLPI_LPC()">Limpar</button>
+        <p id="resultado_lpc" class="resultado"></p>
+    </div>
+
+    <!-- Novo box para Ângulos das Cores -->
+    <div class="calculator" id="angulos_cores">
+        <h2>Ângulos das Cores</h2>
+        <label for="angulos_select">Selecione um padrão:</label>
+        <select id="angulos_select" onchange="mostrarAngulos()">
+            <option value="">--Selecione--</option>
+            <option value="padrao_automation">Ângulos Padrão Automation (Invertido) CW</option>
+            <option value="padrao_kodak">Padrão Kodak NX (Sem Inverter) OFFSET</option>
+            <option value="padrao_flexo">Padrão Flexo</option>
+        </select>
+        <div id="angulos_resultado" class="resultado"></div>
+    </div>
+</div>
+
+<div class="rodape">
+    <strong>Desenvolvido por</strong> Fernando Oliveira
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script>
+    // Função para calcular a Distorção
+    function calcularDistorcao() {
+        var tamanho_embalagem_mm = parseFloat(document.getElementById('tamanho_embalagem').value);
+        var fechamento_mm = parseFloat(document.getElementById('fechamento').value);
+        var desenvolvimento = parseFloat(document.getElementById('engrenagens').value);
+
+        var resultado = (tamanho_embalagem_mm * fechamento_mm) / desenvolvimento;
+
+        var resultadoElement = document.getElementById('resultado_distorcao');
+        resultadoElement.textContent = 'Resultado: ' + resultado.toFixed(2) + ' mm';
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para limpar os campos de Distorção
+    function limparDistorcao() {
+        document.getElementById('tamanho_embalagem').value = '';
+        document.getElementById('fechamento').value = '';
+        document.getElementById('engrenagens').value = '';
+        document.getElementById('resultado_distorcao').textContent = '';
+    }
+
+    // Função para calcular a Distorção com Número de Pistas
+    function calcularDistorcaoPistas() {
+        var numero_pistas = parseFloat(document.getElementById('numero_pistas').value);
+        var distancia_pistas_mm = parseFloat(document.getElementById('distancia_pistas').value);
+
+        var resultado = numero_pistas * distancia_pistas_mm;
+
+        var resultadoElement = document.getElementById('resultado_distorcao_pistas');
+        resultadoElement.textContent = 'Resultado: ' + resultado.toFixed(2) + ' mm';
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para limpar os campos de Distorção com Número de Pistas
+    function limparDistorcaoPistas() {
+        document.getElementById('numero_pistas').value = '';
+        document.getElementById('distancia_pistas').value = '';
+        document.getElementById('resultado_distorcao_pistas').textContent = '';
+    }
+
+    // Função para calcular Z módulo 1/8
+    function calcularZModuloUmOitavo() {
+        var z = parseFloat(document.getElementById('z_input').value);
+        var resultado = z * 3.175;
+
+        var resultadoElement = document.getElementById('resultado_z');
+        resultadoElement.textContent = 'Resultado Z módulo 1/8: ' + resultado.toFixed(2);
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para calcular Z módulo 1
+    function calcularZModuloUm() {
+        var z = parseFloat(document.getElementById('z_input').value);
+        var resultado = z * 3.1415;
+
+        var resultadoElement = document.getElementById('resultado_z');
+        resultadoElement.textContent = 'Resultado Z módulo 1: ' + resultado.toFixed(2);
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para limpar os campos de Z
+    function limparCalculoZ() {
+        document.getElementById('z_input').value = '';
+        document.getElementById('resultado_z').textContent = '';
+    }
+
+    // Função para calcular LPC para LPI
+    function calcularLPCparaLPI() {
+        var lpc = parseFloat(document.getElementById('lpc_input').value);
+        var resultado = lpc * 2.54;
+
+        var resultadoElement = document.getElementById('resultado_lpi');
+        resultadoElement.textContent = 'Resultado LPI: ' + resultado.toFixed(2);
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para limpar os campos de LPC para LPI
+    function limparCalculoLPC_LPI() {
+        document.getElementById('lpc_input').value = '';
+        document.getElementById('resultado_lpi').textContent = '';
+    }
+
+    // Função para calcular LPI para LPC
+    function calcularLPIparaLPC() {
+        var lpi = parseFloat(document.getElementById('lpi_input').value);
+        var resultado = lpi / 2.54;
+
+        var resultadoElement = document.getElementById('resultado_lpc');
+        resultadoElement.textContent = 'Resultado LPC: ' + resultado.toFixed(2);
+        resultadoElement.classList.add('resultado');
+    }
+
+    // Função para limpar os campos de LPI para LPC
+    function limparCalculoLPI_LPC() {
+        document.getElementById('lpi_input').value = '';
+        document.getElementById('resultado_lpc').textContent = '';
+    }
+
+    // Função para mostrar os ângulos das cores
+    function mostrarAngulos() {
+        var select = document.getElementById('angulos_select');
+        var resultadoElement = document.getElementById('angulos_resultado');
+        var selectedValue = select.value;
+
+        var conteudo = '';
+
+        if (selectedValue === 'padrao_automation') {
+            conteudo = '<h3>Ângulos Padrão Automation (Invertido) CW</h3>' +
+                       '<p class="cyan">Cyan: 22,5°</p>' +
+                       '<p class="magenta">Magenta: 52,5°</p>' +
+                       '<p class="yellow">Yellow: 7,5°</p>' +
+                       '<p class="black">Black: 82,5°</p>';
+        } else if (selectedValue === 'padrao_kodak') {
+            conteudo = '<h3>Padrão Kodak NX (Sem Inverter) OFFSET</h3>' +
+                       '<p class="cyan">Cyan: 15°</p>' +
+                       '<p class="magenta">Magenta: 75°</p>' +
+                       '<p class="yellow">Yellow: 0°</p>' +
+                       '<p class="black">Black: 45°</p>';
+        } else if (selectedValue === 'padrao_flexo') {
+            conteudo = '<h3>Padrão Flexo</h3>' +
+                       '<p class="cyan">Cyan: 67,5°</p>' +
+                       '<p class="magenta">Magenta: 37,5°</p>' +
+                       '<p class="yellow">Yellow: 82,5°</p>' +
+                       '<p class="black">Black: 7,5°</p>';
+        }
+
+        resultadoElement.innerHTML = conteudo;
+    }
+
+    // Inicializa o redimensionamento usando jQuery UI
+    $(function() {
+        $(".calculator").resizable({
+            minWidth: 300,
+            minHeight: 200
+        });
+    });
+</script>
+
+</body>
+</html>

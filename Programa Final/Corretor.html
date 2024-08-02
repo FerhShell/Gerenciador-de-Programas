@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correção de Texto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #f5f5f5;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #2e2e2e;
+            color: #f5f5f5;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #f5f5f5;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        h1, h2 {
+            color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Correção de Texto</h1>
+    <textarea id="textoOriginal" rows="10" placeholder="Digite seu texto aqui..."></textarea><br>
+    <button id="corrigirTexto">Corrigir Texto</button>
+    
+    <h2>Texto Corrigido</h2>
+    <textarea id="textoCorrigido" rows="10" readonly></textarea>
+    <button id="copiarTextoCorrigido">Copiar Texto Corrigido</button>
+
+    <script>
+        // Chave da API OpenAI
+        const openaiApiKey = 'sk-4a4V4bO6Zi8Pf4FdAelW3BlbkFJiRlgq24Af8hUYZz2XWZu5';
+
+        document.getElementById('corrigirTexto').addEventListener('click', function() {
+            const textoOriginal = document.getElementById('textoOriginal').value;
+
+            // Correção de texto usando LanguageTool
+            fetch('https://api.languagetool.org/v2/check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'text': textoOriginal,
+                    'language': 'pt-BR'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let textoCorrigido = textoOriginal;
+                data.matches.forEach(match => {
+                    textoCorrigido = textoCorrigido.slice(0, match.offset) + match.replacements[0].value + textoCorrigido.slice(match.offset + match.length);
+                });
+                document.getElementById('textoCorrigido').value = textoCorrigido;
+            })
+            .catch(error => console.error('Erro:', error));
+        });
+
+        document.getElementById('copiarTextoCorrigido').addEventListener('click', function() {
+            const textoCorrigido = document.getElementById('textoCorrigido');
+            textoCorrigido.select();
+            document.execCommand('copy');
+            alert('Texto corrigido copiado para a área de transferência!');
+        });
+    </script>
+</body>
+</html>

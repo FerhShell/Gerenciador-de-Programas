@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Horas com Soma Total</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #f0f0f0, #dfe9f3);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .box {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+      transition: transform 0.3s;
+    }
+
+    .box:hover {
+      transform: translateY(-5px);
+    }
+
+    .calc-container, .valor-container, .descontos-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      position: relative;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .input-container:hover {
+      background-color: #f9f9f9;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .quadrado {
+      width: 120px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 10px;
+      background-color: #e7f1ff;
+    }
+
+    .input-container input, .input-container select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100px;
+      text-align: center;
+      transition: background-color 0.3s;
+    }
+
+    .input-container input:focus {
+      background-color: #e1f5fe;
+    }
+
+    .resultado {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      width: 120px;
+      height: 40px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .resultado.positivo {
+      background-color: #c3e6cb; /* Verde claro */
+      color: #155724; /* Verde mais escuro */
+    }
+
+    .resultado.negativo {
+      background-color: #f5c6cb; /* Vermelho claro */
+      color: #721c24; /* Vermelho mais escuro */
+    }
+
+    .total-container {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .total-label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .total-resultado, .total-valor {
+      background-color: #007bff;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    .btn-excluir {
+      background-color: transparent;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      margin-right: 10px; /* Espaçamento entre o botão e os quadrados */
+      transition: color 0.3s;
+    }
+
+    .btn-excluir:hover {
+      color: #ff0000; /* Mudança de cor no hover para destacar */
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .valor-container, .descontos-container {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .descontos-container .input-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .desconto-item {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 10px;
+      background-color: #fff9e6;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .box {
+      animation: fadeIn 1s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Horas com Soma Total</h1>
+    
+    <!-- Botões de Backup e Restaurar -->
+    <div class="box">
+      <button onclick="fazerBackup()">Fazer Backup</button>
+      <button onclick="restaurarDados()">Restaurar</button>
+      <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+    </div>
+
+    <!-- Box para Calculadora de Horas -->
+    <div class="box calc-container">
+      <h2>Calculadora de Horas</h2>
+      <div id="dias-container">
+        <!-- Primeiro conjunto de campos de entrada -->
+        <div class="input-container">
+          <button class="btn-excluir" onclick="removerDia(this)">x</button> <!-- Botão de exclusão -->
+          <div class="quadrado">
+            <input type="text" class="data-input" placeholder="Data (dd/mm)">
+          </div>
+          <div class="quadrado">
+            <input type="text" class="hora1-input" placeholder="H1" oninput="calcularInstantaneo(this)">
+          </div>
+          <div class="quadrado">
+            <input type="text" class="hora2-input" placeholder="H2" oninput="calcularInstantaneo(this)">
+          </div>
+          <div class="resultado"></div>
+          <div class="resultado-valor"></div> <!-- Resultado do valor das horas -->
+        </div>
+      </div>
+      <!-- Movido para dentro do box "Calculadora de Horas" -->
+      <div class="total-container">
+        <span class="total-label">Total:</span>
+        <div class="total-resultado">00:00</div>
+        <div class="total-valor">R$ 0.00</div> <!-- Resultado do valor total das horas -->
+      </div>
+      <button onclick="adicionarDia()">Adicionar Dia</button>
+    </div>
+
+    <!-- Box para Valor das Horas Trabalhadas -->
+    <div class="box valor-container">
+      <h2>Valor das Horas Trabalhadas</h2>
+      <div class="input-container">
+        <input type="number" id="salario" placeholder="Salário em R$" oninput="calcularValorHora()">
+        <input type="number" id="diasTrabalhados" value="22" placeholder="Dias Trabalhados">
+        <input type="number" id="horasTrabalhadas" value="9" placeholder="Horas por Dia">
+        <button onclick="calcularValorHora()">Calcular</button>
+      </div>
+      <div class="resultado-valor"></div>
+    </div>
+
+    <!-- Box para Descontos -->
+    <div class="box descontos-container">
+      <h2>Descontos</h2>
+      <div class="input-container">
+        <div class="desconto-item">Adiantamento: R$ <span id="descontoAdiantamento">0.00</span></div>
+        <div class="desconto-item">Vale Transporte: R$ <span id="descontoValeTransporte">0.00</span></div>
+        <div class="desconto-item">Desconto INSS: R$ <span id="descontoINSS">0.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calcularHoras(h1, h2) {
+      const [h1Hours, h1Minutes] = h1.split(':').map(Number);
+      const [h2Hours, h2Minutes] = h2.split(':').map(Number);
+
+      const totalMinutes1 = h1Hours * 60 + h1Minutes;
+      const totalMinutes2 = h2Hours * 60 + h2Minutes;
+
+      const differenceMinutes = totalMinutes2 - totalMinutes1;
+
+      return differenceMinutes;
+    }
+
+    function formatarHora(totalMinutes) {
+      const hours = Math.floor(Math.abs(totalMinutes) / 60);
+      const minutes = Math.abs(totalMinutes) % 60;
+      const formattedHours = hours.toString().padStart(2, '0');
+      const formattedMinutes = minutes.toString().padStart(2, '0');
+      return `${totalMinutes < 0 ? '-' : ''}${formattedHours}:${formattedMinutes}`;
+    }
+
+    function atualizarResultado(resultadoQuadrado, resultado, isPositive) {
+      resultadoQuadrado.textContent = ` = ${resultado}`;
+      resultadoQuadrado.className = 'resultado';
+      if (isPositive) {
+        resultadoQuadrado.classList.add('positivo');
+      } else {
+        resultadoQuadrado.classList.add('negativo');
+      }
+    }
+
+    function atualizarTotal() {
+      const totalResult = document.querySelector('.calc-container .total-resultado'); // Seleciona dentro do box "Calculadora de Horas"
+      let totalMinutes = 0;
+      let totalHoras = 0; // Inicializa o total de horas
+      document.querySelectorAll('.calc-container .resultado').forEach((resultado) => { // Apenas dentro do box "Calculadora de Horas"
+        let hora = resultado.textContent.split('=')[1].trim();
+        const isNegative = hora.startsWith('-');
+        const [hours, minutes] = hora.replace('-', '').split(':').map(Number);
+        totalMinutes += (isNegative ? -1 : 1) * (hours * 60 + minutes);
+        totalHoras += (isNegative ? -1 : 1) * hours; // Soma as horas
+      });
+      totalResult.textContent = formatarHora(totalMinutes);
+      Horas(totalHoras); // Chama a função para atualizar o valor total das horas
+    }
+
+    function calcularInstantaneo(input) {
+      const inputContainer = input.parentElement.parentElement; // .input-container
+      const hora1Input = inputContainer.querySelector('.hora1-input').value;
+      const hora2Input = inputContainer.querySelector('.hora2-input').value;
+      const resultadoQuadrado = inputContainer.querySelector('.resultado');
+
+      if (hora1Input && hora2Input) {
+        const differenceMinutes = calcularHoras(hora1Input, hora2Input);
+        atualizarResultado(resultadoQuadrado, formatarHora(differenceMinutes), differenceMinutes >= 0);
+        atualizarTotal();
+      }
+    }
+
+    function adicionarDia() {
+      const diasContainer = document.getElementById('dias-container');
+
+      const novoDia = document.createElement('div');
+      novoDia.classList.add('input-container');
+
+      novoDia.innerHTML = `
+        <button class="btn-excluir" onclick="removerDia(this)">x</button> <!-- Botão de exclusão -->
+        <div class="quadrado">
+          <input type="text" class="data-input" placeholder="Data (dd/mm)">
+        </div>
+        <div class="quadrado">
+          <input type="text" class="hora1-input" placeholder="H1" oninput="calcularInstantaneo(this)">
+        </div>
+        <div class="quadrado">
+          <input type="text" class="hora2-input" placeholder="H2" oninput="calcularInstantaneo(this)">
+        </div>
+        <div class="resultado"></div>
+        <div class="resultado-valor"></div> <!-- Resultado do valor das horas -->
+      `;
+
+      diasContainer.appendChild(novoDia);
+    }
+
+    function removerDia(botao) {
+      const divPai = botao.parentElement;
+      const resultadoQuadrado = divPai.querySelector('.resultado');
+      const hora1Input = divPai.querySelector('.hora1-input').value;
+      const hora2Input = divPai.querySelector('.hora2-input').value;
+
+      if (hora1Input && hora2Input) {
+        const differenceMinutes = calcularHoras(hora1Input, hora2Input);
+        const isPositive = differenceMinutes >= 0;
+        divPai.remove();
+        atualizarTotal();
+      } else {
+        divPai.remove();
+      }
+    }
+
+    function calcularValorHora() {
+      const salario = document.getElementById('salario').valueAsNumber || 0;
+      const diasTrabalhados = document.getElementById('diasTrabalhados').valueAsNumber || 22;
+      const horasTrabalhadas = document.getElementById('horasTrabalhadas').valueAsNumber || 9;
+
+      const valorHora = salario / diasTrabalhados / horasTrabalhadas;
+      const resultadoValor = document.querySelector('.valor-container .resultado-valor');
+      resultadoValor.textContent = `Valor por Hora: R$ ${valorHora.toFixed(2)}`;
+
+      // Atualiza também o resultado do box "Valor das Horas" no box "Calculadora de Horas"
+      atualizarResultadoValorDasHoras(valorHora);
+    }
+
+    function atualizarResultadoValorDasHoras(valorHora) {
+      const totalResult = document.querySelector('.calc-container .total-valor'); // Seleciona dentro do box "Calculadora de Horas"
+      const totalHoras = calcularTotalHoras();
+      const valorTotalHoras = totalHoras * valorHora;
+      totalResult.textContent = `R$ ${valorTotalHoras.toFixed(2)}`;
+    }
+
+    function calcularTotalHoras() {
+      let totalMinutes = 0;
+      document.querySelectorAll('.calc-container .resultado').forEach((resultado) => { // Apenas dentro do box "Calculadora de Horas"
+        let hora = resultado.textContent.split('=')[1].trim();
+        const isNegative = hora.startsWith('-');
+        const [hours, minutes] = hora.replace('-', '').split(':').map(Number);
+        totalMinutes += (isNegative ? -1 : 1) * (hours * 60 + minutes);
+      });
+      return totalMinutes / 60; // Retorna o total de horas
+    }
+
+    function Horas(valorHora) {
+      const totalResult = document.querySelector('.calc-container .total-valor'); // Seleciona dentro do box "Calculadora de Horas"
+      const totalHoras = calcularTotalHoras();
+      const valorTotalHoras = totalHoras * valorHora;
+      totalResult.textContent = `R$ ${valorTotalHoras.toFixed(2)}`;
+    }
+
+    function calcularDescontos() {
+      const salario = document.getElementById('salario').valueAsNumber || 0;
+
+      let adiantamento = salario * 0.4; // 40% de adiantamento
+      let valeTransporte = salario * 0.06; // 6% de vale transporte
+      let descontoINSS = 0;
+
+      if (salario <= 1412) {
+        descontoINSS = salario * (7.5 / 100);
+      } else if (salario > 1412 && salario <= 2666.68) {
+        descontoINSS = salario * (9 / 100);
+      } else if (salario > 2666.68 && salario <= 4000.03) {
+        descontoINSS = salario * (12 / 100);
+      } else if (salario > 4000.03 && salario <= 7786.02) {
+        descontoINSS = salario * (14 / 100);
+      }
+
+      adiantamento = adiantamento.toFixed(2);
+      valeTransporte = valeTransporte.toFixed(2);
+      descontoINSS = descontoINSS.toFixed(2);
+
+      // Atualiza os valores na página
+      document.getElementById('descontoAdiantamento').textContent = adiantamento;
+      document.getElementById('descontoValeTransporte').textContent = valeTransporte;
+      document.getElementById('descontoINSS').textContent = descontoINSS;
+    }
+
+    document.getElementById('salario').addEventListener('input', calcularDescontos);
+
+    // Função para fazer backup dos dados
+    function fazerBackup() {
+      const diasContainer = document.getElementById('dias-container');
+      const inputs = diasContainer.querySelectorAll('.input-container');
+      const data = [];
+
+      inputs.forEach(input => {
+        const dataInput = input.querySelector('.data-input').value;
+        const hora1Input = input.querySelector('.hora1-input').value;
+        const hora2Input = input.querySelector('.hora2-input').value;
+        const resultado = input.querySelector('.resultado').textContent;
+
+        data.push({ dataInput, hora1Input, hora2Input, resultado });
+      });
+
+      const json = JSON.stringify(data);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'backup.json';
+      a.click();
+    }
+
+    // Função para iniciar o processo de restauração
+    function restaurarDados() {
+      const fileInput = document.getElementById('fileInput');
+      fileInput.click();
+    }
+
+    // Função para lidar com a seleção do arquivo
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        const diasContainer = document.getElementById('dias-container');
+        diasContainer.innerHTML = '';
+
+        data.forEach(item => {
+          const novoDia = document.createElement('div');
+          novoDia.classList.add('input-container');
+
+          novoDia.innerHTML = `
+            <button class="btn-excluir" onclick="removerDia(this)">x</button>
+            <div class="quadrado">
+              <input type="text" class="data-input" placeholder="Data (dd/mm)" value="${item.dataInput}">
+            </div>
+            <div class="quadrado">
+              <input type="text" class="hora1-input" placeholder="H1" value="${item.hora1Input}" oninput="calcularInstantaneo(this)">
+            </div>
+            <div class="quadrado">
+              <input type="text" class="hora2-input" placeholder="H2" value="${item.hora2Input}" oninput="calcularInstantaneo(this)">
+            </div>
+            <div class="resultado">${item.resultado}</div>
+            <div class="resultado-valor"></div>
+          `;
+
+          diasContainer.appendChild(novoDia);
+        });
+
+        atualizarTotal();
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Programa Financeiro Completo para gerenciar receitas e despesas.">
+    <title>Programa Financeiro Completo</title>
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --primary-color: #f0f0f0;
+            --secondary-bg: #333;
+            --highlight-color: #00bfff;
+            --border-color: #444;
+            --negative-color: red;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(90deg, #000, var(--secondary-bg));
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 15px;
+        }
+
+        nav a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--highlight-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            overflow: auto;
+        }
+
+        .form-container {
+            display: flex;
+            gap: 2rem;
+        }
+
+        section {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            flex: 1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        form {
+            margin-bottom: 1rem;
+        }
+
+        input, select, button {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: #222;
+            color: var(--primary-color);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, button:hover {
+            background: #555;
+            border-color: var(--highlight-color);
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+        }
+
+        button {
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--secondary-bg), #555);
+            border: none;
+            color: #fff;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--highlight-color);
+        }
+
+        .balance-box {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .balance {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        table, th, td {
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 0.5rem;
+            text-align: left;
+            background: #222;
+        }
+
+        th {
+            background: var(--secondary-bg);
+        }
+
+        table td.negative {
+            color: var(--negative-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Programa Financeiro Completo</h1>
+        <nav>
+            <ul>
+                <li><a href="#despesas">Despesas</a></li>
+                <li><a href="#receitas">Receitas</a></li>
+                <li><a href="#backup">Backup</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="balance-box">
+            <div class="balance" id="paymentBalance">Saldo Pagamento: R$ 0,00</div>
+            <div class="balance" id="advanceBalance">Saldo Adiantamento: R$ 0,00</div>
+            <div class="balance" id="generalBalance">Saldo Geral: R$ 0,00</div>
+            <div class="balance" id="totalIncome">Total de Receitas: R$ 0,00</div>
+            <div class="balance" id="totalExpense">Total de Despesas: R$ 0,00</div>
+        </div>
+        <div class="form-container">
+            <section id="receitas">
+                <h2>Receitas</h2>
+                <form id="incomeForm">
+                    <input type="text" id="incomeName" placeholder="Descrição" required>
+                    <input type="number" id="incomeAmount" placeholder="Valor" required>
+                    <input type="date" id="incomeDate" required>
+                    <select id="incomeType">
+                        <option value="pagamento">Pagamento</option>
+                        <option value="adiantamento">Adiantamento</option>
+                    </select>
+                    <button type="submit">Adicionar Receita</button>
+                </form>
+                <table id="incomeTable">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incomeTableBody"></tbody>
+                </table>
+            </section>
+            <section id="despesas">
+                <h2>Despesas</h2>
+                <form id="expenseForm">
+                    <input type="text" id="expenseName" placeholder="Descrição" required>
+                    <input type="number" id="expenseAmount" placeholder="Valor" required>
+                    <select id="expenseType">
+                        <option value="pagamento">Pagamento</option>
+                        <option value="adiantamento">Adiantamento</option>
+                    </select>
+                    <button type="submit">Adicionar Despesa</button>
+                </form>
+                <table id="expenseTable">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Tipo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody"></tbody>
+                </table>
+            </section>
+        </div>
+        <section id="backup">
+            <h2>Backup e Restauração</h2>
+            <button id="backupButton">Fazer Backup</button>
+            <input type="file" id="restoreInput">
+            <button id="restoreButton">Restaurar Backup</button>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Programa Financeiro Completo. Todos os direitos reservados.</p>
+    </footer>
+    <script>
+        const paymentBalanceElem = document.getElementById('paymentBalance');
+        const advanceBalanceElem = document.getElementById('advanceBalance');
+        const generalBalanceElem = document.getElementById('generalBalance');
+        const totalIncomeElem = document.getElementById('totalIncome');
+        const totalExpenseElem = document.getElementById('totalExpense');
+
+        let paymentBalance = 0;
+        let advanceBalance = 0;
+        let generalBalance = 0;
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        const incomeTableBody = document.getElementById('incomeTableBody');
+        const expenseTableBody = document.getElementById('expenseTableBody');
+
+        document.getElementById('incomeForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('incomeName').value;
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+            const date = document.getElementById('incomeDate').value;
+            const type = document.getElementById('incomeType').value;
+
+            addIncome(name, amount, date, type);
+            document.getElementById('incomeForm').reset();
+        });
+
+        document.getElementById('expenseForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('expenseName').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const type = document.getElementById('expenseType').value;
+
+            addExpense(name, amount, type);
+            document.getElementById('expenseForm').reset();
+        });
+
+        function addIncome(name, amount, date, type) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>R$ ${amount.toFixed(2).replace('.', ',')}</td>
+                <td>${new Date(date).toLocaleDateString('pt-BR')}</td>
+                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                <td class="actions">
+                    <button onclick="editIncome(this)">Editar</button>
+                    <button onclick="deleteIncome(this)">Remover</button>
+                </td>`;
+            incomeTableBody.appendChild(row);
+
+            if (type === 'pagamento') {
+                paymentBalance += amount;
+            } else if (type === 'adiantamento') {
+                advanceBalance += amount;
+            }
+            generalBalance += amount;
+            totalIncome += amount;
+
+            updateBalances();
+            saveData();
+        }
+
+        function addExpense(name, amount, type) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>R$ ${amount.toFixed(2).replace('.', ',')}</td>
+                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                <td class="actions">
+                    <button onclick="editExpense(this)">Editar</button>
+                    <button onclick="deleteExpense(this)">Remover</button>
+                </td>`;
+            expenseTableBody.appendChild(row);
+
+            if (type === 'pagamento') {
+                paymentBalance -= amount;
+            } else if (type === 'adiantamento') {
+                advanceBalance -= amount;
+            }
+            generalBalance -= amount;
+            totalExpense += amount;
+
+            updateBalances();
+            saveData();
+        }
+
+        function updateBalances() {
+            paymentBalanceElem.textContent = `Saldo Pagamento: R$ ${paymentBalance.toFixed(2).replace('.', ',')}`;
+            advanceBalanceElem.textContent = `Saldo Adiantamento: R$ ${advanceBalance.toFixed(2).replace('.', ',')}`;
+            generalBalanceElem.textContent = `Saldo Geral: R$ ${generalBalance.toFixed(2).replace('.', ',')}`;
+            totalIncomeElem.textContent = `Total de Receitas: R$ ${totalIncome.toFixed(2).replace('.', ',')}`;
+            totalExpenseElem.textContent = `Total de Despesas: R$ ${totalExpense.toFixed(2).replace('.', ',')}`;
+
+            paymentBalanceElem.style.color = paymentBalance < 0 ? 'var(--negative-color)' : 'var(--primary-color)';
+            advanceBalanceElem.style.color = advanceBalance < 0 ? 'var(--negative-color)' : 'var(--primary-color)';
+            generalBalanceElem.style.color = generalBalance < 0 ? 'var(--negative-color)' : 'var(--primary-color)';
+        }
+
+        function editIncome(button) {
+            const row = button.parentElement.parentElement;
+            const cells = row.querySelectorAll('td');
+            const amount = parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.'));
+
+            document.getElementById('incomeName').value = cells[0].textContent;
+            document.getElementById('incomeAmount').value = amount;
+            document.getElementById('incomeDate').value = new Date(cells[2].textContent.split('/').reverse().join('-')).toISOString().split('T')[0];
+            document.getElementById('incomeType').value = cells[3].textContent.toLowerCase();
+            row.remove();
+
+            updateBalancesAfterEdit(cells[3].textContent.toLowerCase(), amount, 'income');
+        }
+
+        function deleteIncome(button) {
+            const row = button.parentElement.parentElement;
+            const cells = row.querySelectorAll('td');
+            const amount = parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.'));
+
+            row.remove();
+            updateBalancesAfterEdit(cells[3].textContent.toLowerCase(), amount, 'income');
+        }
+
+        function editExpense(button) {
+            const row = button.parentElement.parentElement;
+            const cells = row.querySelectorAll('td');
+            const amount = parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.'));
+
+            document.getElementById('expenseName').value = cells[0].textContent;
+            document.getElementById('expenseAmount').value = amount;
+            document.getElementById('expenseType').value = cells[2].textContent.toLowerCase();
+            row.remove();
+
+            updateBalancesAfterEdit(cells[2].textContent.toLowerCase(), amount, 'expense');
+        }
+
+        function deleteExpense(button) {
+            const row = button.parentElement.parentElement;
+            const cells = row.querySelectorAll('td');
+            const amount = parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.'));
+
+            row.remove();
+            updateBalancesAfterEdit(cells[2].textContent.toLowerCase(), amount, 'expense');
+        }
+
+        function updateBalancesAfterEdit(type, amount, entryType) {
+            if (entryType === 'income') {
+                if (type === 'pagamento') {
+                    paymentBalance -= amount;
+                } else if (type === 'adiantamento') {
+                    advanceBalance -= amount;
+                }
+                generalBalance -= amount;
+                totalIncome -= amount;
+            } else if (entryType === 'expense') {
+                if (type === 'pagamento') {
+                    paymentBalance += amount;
+                } else if (type === 'adiantamento') {
+                    advanceBalance += amount;
+                }
+                generalBalance += amount;
+                totalExpense -= amount;
+            }
+
+            updateBalances();
+            saveData();
+        }
+
+        function saveData() {
+            const incomes = Array.from(incomeTableBody.querySelectorAll('tr')).map(row => {
+                const cells = row.querySelectorAll('td');
+                return {
+                    name: cells[0].textContent,
+                    amount: parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.')),
+                    date: cells[2].textContent.split('/').reverse().join('-'),
+                    type: cells[3].textContent.toLowerCase()
+                };
+            });
+
+            const expenses = Array.from(expenseTableBody.querySelectorAll('tr')).map(row => {
+                const cells = row.querySelectorAll('td');
+                return {
+                    name: cells[0].textContent,
+                    amount: parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.')),
+                    type: cells[2].textContent.toLowerCase()
+                };
+            });
+
+            const data = { incomes, expenses, paymentBalance, advanceBalance, generalBalance, totalIncome, totalExpense };
+            localStorage.setItem('financialData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('financialData'));
+            if (data) {
+                incomeTableBody.innerHTML = '';
+                expenseTableBody.innerHTML = '';
+
+                data.incomes.forEach(income => {
+                    addIncome(income.name, income.amount, income.date, income.type);
+                });
+
+                data.expenses.forEach(expense => {
+                    addExpense(expense.name, expense.amount, expense.type);
+                });
+
+                paymentBalance = data.paymentBalance;
+                advanceBalance = data.advanceBalance;
+                generalBalance = data.generalBalance;
+                totalIncome = data.totalIncome;
+                totalExpense = data.totalExpense;
+
+                updateBalances();
+            }
+        }
+
+        document.getElementById('backupButton').addEventListener('click', () => {
+            const incomes = Array.from(incomeTableBody.querySelectorAll('tr')).map(row => {
+                const cells = row.querySelectorAll('td');
+                return {
+                    name: cells[0].textContent,
+                    amount: parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.')),
+                    date: cells[2].textContent.split('/').reverse().join('-'),
+                    type: cells[3].textContent.toLowerCase()
+                };
+            });
+
+            const expenses = Array.from(expenseTableBody.querySelectorAll('tr')).map(row => {
+                const cells = row.querySelectorAll('td');
+                return {
+                    name: cells[0].textContent,
+                    amount: parseFloat(cells[1].textContent.replace('R$', '').replace(',', '.')),
+                    type: cells[2].textContent.toLowerCase()
+                };
+            });
+
+            const data = { incomes, expenses, paymentBalance, advanceBalance, generalBalance, totalIncome, totalExpense };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('restoreButton').addEventListener('click', () => {
+            const fileInput = document.getElementById('restoreInput');
+            if (fileInput.files.length === 0) {
+                alert('Selecione um arquivo para restaurar.');
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = JSON.parse(e.target.result);
+                restoreData(data);
+                alert('Backup restaurado com sucesso!');
+            };
+
+            reader.readAsText(file);
+        });
+
+        function restoreData(data) {
+            incomeTableBody.innerHTML = '';
+            expenseTableBody.innerHTML = '';
+
+            data.incomes.forEach(income => {
+                addIncome(income.name, income.amount, income.date, income.type);
+            });
+
+            data.expenses.forEach(expense => {
+                addExpense(expense.name, expense.amount, expense.type);
+            });
+
+            paymentBalance = data.paymentBalance;
+            advanceBalance = data.advanceBalance;
+            generalBalance = data.generalBalance;
+            totalIncome = data.totalIncome;
+            totalExpense = data.totalExpense;
+
+            updateBalances();
+            saveData();
+        }
+
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>

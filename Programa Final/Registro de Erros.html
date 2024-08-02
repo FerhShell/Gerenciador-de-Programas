@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Erros de Operadores</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1e1e1e;
+            color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #00bcd4;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            margin-top: 10px;
+            color: #cfd8dc;
+        }
+
+        input, textarea {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #00bcd4, #0097a7);
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #0097a7, #00bcd4);
+            transform: scale(1.05);
+        }
+
+        #operatorList {
+            display: none;
+            margin-top: 10px;
+            border-radius: 8px;
+            background: #2a2a2a;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #operatorList label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #operatorList input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        #report, #comparisonContainer {
+            margin-top: 20px;
+        }
+
+        #errorList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #errorList li {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        .chart-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .info-box {
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .remove-button, .remove-error-button {
+            background-color: #e53935;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-left: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .remove-button:hover, .remove-error-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .info-box button {
+            background-color: #00bcd4;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .info-box button:hover {
+            background-color: #0097a7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Erros de Operadores</h1>
+        <form id="errorForm">
+            <label for="date">Data:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="operatorButton">Operador:</label>
+            <button type="button" id="operatorButton">Selecione um Operador</button>
+            <div id="operatorList"></div>
+            
+            <label for="orderNumber">Número da Ordem de Serviço:</label>
+            <input type="text" id="orderNumber" name="orderNumber" required>
+            
+            <label for="errorDescription">Descrição do Erro:</label>
+            <textarea id="errorDescription" name="errorDescription" required></textarea>
+            
+            <button type="submit">Registrar Erro</button>
+        </form>
+
+        <div class="info-box">
+            <button id="addOperator">Adicionar Operador</button>
+            <button id="removeOperator">Remover Operador</button>
+            <button id="generateReport">Gerar Relatório de Erros</button>
+            <button id="backupData">Backup dos Dados</button>
+            <button id="restoreData">Restaurar Backup</button>
+            <input type="file" id="restoreFileInput" style="display: none;">
+            <button id="compareBackups">Comparar Backups</button>
+            <input type="file" id="comparisonFileInput" multiple style="display: none;">
+        </div>
+
+        <div id="report" style="display: none;">
+            <h2>Relatório de Erros</h2>
+            <ul id="errorList"></ul>
+            <div class="chart-container">
+                <canvas id="errorChart"></canvas>
+            </div>
+        </div>
+
+        <div id="comparisonContainer" style="display: none;">
+            <h2>Comparativo de Backups</h2>
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorForm = document.getElementById('errorForm');
+            const generateReportButton = document.getElementById('generateReport');
+            const backupDataButton = document.getElementById('backupData');
+            const restoreDataButton = document.getElementById('restoreData');
+            const compareBackupsButton = document.getElementById('compareBackups');
+            const restoreFileInput = document.getElementById('restoreFileInput');
+            const comparisonFileInput = document.getElementById('comparisonFileInput');
+            const report = document.getElementById('report');
+            const comparisonContainer = document.getElementById('comparisonContainer');
+            const errorList = document.getElementById('errorList');
+            const errorChartCtx = document.getElementById('errorChart').getContext('2d');
+            const comparisonChartCtx = document.getElementById('comparisonChart').getContext('2d');
+            const operatorList = document.getElementById('operatorList');
+            const operatorButton = document.getElementById('operatorButton');
+            const addOperatorButton = document.getElementById('addOperator');
+            const removeOperatorButton = document.getElementById('removeOperator');
+
+            let errors = JSON.parse(localStorage.getItem('errors') || '[]');
+            if (!Array.isArray(errors)) errors = [];
+            let operators = JSON.parse(localStorage.getItem('operators') || '[]');
+            if (!Array.isArray(operators)) operators = [];
+            let selectedOperator = null;
+            let errorChart = null;
+            let comparisonChart = null;
+
+            function updateLocalStorage() {
+                localStorage.setItem('errors', JSON.stringify(errors));
+                localStorage.setItem('operators', JSON.stringify(operators));
+            }
+
+            function renderOperatorList() {
+                operatorList.innerHTML = operators.map(op => 
+                    `<label>
+                        <input type="radio" name="operator" value="${op}" ${selectedOperator === op ? 'checked' : ''}>
+                        ${op}
+                    </label>`
+                ).join('');
+                
+                document.querySelectorAll('input[name="operator"]').forEach(input => {
+                    input.addEventListener('change', function() {
+                        selectedOperator = this.value;
+                        operatorList.style.display = 'none';
+                        operatorButton.textContent = `Operador Selecionado: ${selectedOperator}`;
+                    });
+                });
+            }
+
+            function removeOperator() {
+                if (!selectedOperator) {
+                    alert('Por favor, selecione um operador para remover.');
+                    return;
+                }
+
+                if (confirm(`Tem certeza de que deseja remover o operador "${selectedOperator}"?`)) {
+                    operators = operators.filter(op => op !== selectedOperator);
+                    selectedOperator = null;
+                    updateLocalStorage();
+                    renderOperatorList();
+                    operatorButton.textContent = 'Selecione um Operador';
+                }
+            }
+
+            operatorButton.addEventListener('click', function() {
+                operatorList.style.display = operatorList.style.display === 'block' ? 'none' : 'block';
+            });
+
+            addOperatorButton.addEventListener('click', function() {
+                const newOperator = prompt('Digite o nome do novo operador:');
+                if (newOperator && !operators.includes(newOperator)) {
+                    operators.push(newOperator);
+                    updateLocalStorage();
+                    renderOperatorList();
+                }
+            });
+
+            removeOperatorButton.addEventListener('click', removeOperator);
+
+            errorForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const date = document.getElementById('date').value;
+                const orderNumber = document.getElementById('orderNumber').value;
+                const errorDescription = document.getElementById('errorDescription').value;
+
+                if (!selectedOperator) {
+                    alert('Por favor, selecione um operador.');
+                    return;
+                }
+
+                console.log('Dados do Erro:', { date, operator: selectedOperator, orderNumber, description: errorDescription });
+                errors.push({ date, operator: selectedOperator, orderNumber, description: errorDescription });
+                updateLocalStorage();
+                generateReport();
+                updateChart();
+                errorForm.reset();
+                selectedOperator = null;
+                operatorButton.textContent = 'Selecione um Operador';
+            });
+
+            generateReportButton.addEventListener('click', function() {
+                report.style.display = 'block';
+                comparisonContainer.style.display = 'none';
+                generateReport();
+                updateChart();
+            });
+
+            backupDataButton.addEventListener('click', function() {
+                const blob = new Blob([JSON.stringify(errors)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'errors_backup.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            restoreDataButton.addEventListener('click', function() {
+                restoreFileInput.click();
+            });
+
+            restoreFileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        errors = JSON.parse(e.target.result);
+                        if (!Array.isArray(errors)) errors = [];
+                        updateLocalStorage();
+                        generateReport();
+                        updateChart();
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            compareBackupsButton.addEventListener('click', function() {
+                comparisonContainer.style.display = 'block';
+                report.style.display = 'none';
+                document.getElementById('comparisonFileInput').click();
+            });
+
+            comparisonFileInput.addEventListener('change', function(event) {
+                const files = event.target.files;
+                if (files.length === 2) {
+                    const file1 = files[0];
+                    const file2 = files[1];
+                    const reader1 = new FileReader();
+                    const reader2 = new FileReader();
+
+                    reader1.onload = function(e1) {
+                        const data1 = JSON.parse(e1.target.result);
+                        reader2.onload = function(e2) {
+                            const data2 = JSON.parse(e2.target.result);
+                            compareData(data1, data2);
+                        };
+                        reader2.readAsText(file2);
+                    };
+                    reader1.readAsText(file1);
+                } else {
+                    alert('Selecione exatamente dois arquivos de backup para comparação.');
+                }
+            });
+
+            function generateReport() {
+                errorList.innerHTML = errors.map((error, index) => `
+                    <li>
+                        <div>
+                            <strong>${error.date}</strong><br>
+                            Operador: ${error.operator}<br>
+                            Ordem de Serviço: ${error.orderNumber}<br>
+                            Descrição: ${error.description}
+                        </div>
+                        <button class="remove-error-button" data-index="${index}">Remover</button>
+                    </li>
+                `).join('');
+
+                document.querySelectorAll('.remove-error-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        errors.splice(index, 1);
+                        updateLocalStorage();
+                        generateReport();
+                        updateChart();
+                    });
+                });
+
+                if (errors.length) {
+                    if (!errorChart) {
+                        createChart();
+                    } else {
+                        updateChart();
+                    }
+                } else {
+                    errorList.innerHTML = '<li>Nenhum erro registrado.</li>';
+                }
+            }
+
+            function createChart() {
+                errorChart = new Chart(errorChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: getErrorLabels(errors),
+                        datasets: [{
+                            label: 'Quantidade de Erros por Operador',
+                            data: getErrorData(errors),
+                            backgroundColor: generateRandomColors(getErrorLabels(errors).length),
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return `Operador: ${tooltipItem.label}, Quantidade: ${tooltipItem.raw}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateChart() {
+                const labels = getErrorLabels(errors);
+                const data = getErrorData(errors);
+
+                errorChart.data.labels = labels;
+                errorChart.data.datasets[0].data = data;
+                errorChart.data.datasets[0].backgroundColor = generateRandomColors(labels.length);
+
+                errorChart.update();
+            }
+
+            function getErrorLabels(data) {
+                const errorCount = data.reduce((acc, error) => {
+                    if (!acc[error.operator]) {
+                        acc[error.operator] = 0;
+                    }
+                    acc[error.operator]++;
+                    return acc;
+                }, {});
+
+                return Object.keys(errorCount);
+            }
+
+            function getErrorData(data) {
+                const errorCount = data.reduce((acc, error) => {
+                    if (!acc[error.operator]) {
+                        acc[error.operator] = 0;
+                    }
+                    acc[error.operator]++;
+                    return acc;
+                }, {});
+
+                return Object.values(errorCount);
+            }
+
+            function generateRandomColors(count) {
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    colors.push(`hsl(${Math.random() * 360}, 70%, 80%)`);
+                }
+                return colors;
+            }
+
+            function compareData(data1, data2) {
+                // Aqui você pode implementar a lógica para comparar os dados
+                // e exibir as diferenças no gráfico de comparação
+                console.log('Comparando dados', data1, data2);
+            }
+
+            renderOperatorList();
+            generateReport();
+        });
+    </script>
+</body>
+</html>

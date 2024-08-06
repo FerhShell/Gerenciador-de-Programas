@@ -104,6 +104,44 @@
             display: flex;
             justify-content: space-between;
         }
+        .dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .dropbtn {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #1e1e1e;
+            min-width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .dropdown-content div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown-content div:hover {
+            background-color: #333;
+        }
+        .show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -114,7 +152,13 @@
             <button id="boaTardeBtn">Boa tarde</button>
         </div>
         <label for="operador">Operador:</label>
-        <input type="text" id="operador" spellcheck="true">
+        <div class="dropdown">
+            <button id="dropdownBtn" class="dropbtn">Selecione o Operador</button>
+            <div id="dropdownContent" class="dropdown-content">
+                <!-- Lista de operadores -->
+            </div>
+        </div>
+        <input type="text" id="operador" spellcheck="true" readonly>
         <label for="cliente">Nome do Cliente:</label>
         <input type="text" id="cliente" spellcheck="true">
         <label for="os">Número da OS:</label>
@@ -143,12 +187,22 @@
         const erroInput = document.getElementById('erro');
         const outputDiv = document.getElementById('output');
         const notificationDiv = document.getElementById('notification');
+        const dropdownBtn = document.getElementById('dropdownBtn');
+        const dropdownContent = document.getElementById('dropdownContent');
+        
         let saudacao = '';
+        const operadores = ['Alisson', 'Bruna', 'Eder', 'Gabriel', 'Heriton', 'Jessica', 'Luciano', 'Lucas', 'Renato', 'Shelry'];
 
         function updateSaudacao(selectedBtn, otherBtn) {
             saudacao = selectedBtn === bomDiaBtn ? 'Bom dia' : 'Boa tarde';
             selectedBtn.classList.add('selected');
             otherBtn.classList.remove('selected');
+        }
+
+        function updateOperador(operador) {
+            operadorInput.value = operador;
+            dropdownContent.classList.remove('show'); // Oculta o dropdown após seleção
+            dropdownBtn.textContent = operador; // Atualiza o texto do botão
         }
 
         bomDiaBtn.addEventListener('click', () => {
@@ -194,6 +248,28 @@
                 notificationDiv.className = 'notification error';
                 notificationDiv.innerText = 'Nenhum texto para copiar.';
                 notificationDiv.style.display = 'block';
+            }
+        });
+
+        // Preencher o dropdown com os operadores
+        operadores.forEach(operador => {
+            const div = document.createElement('div');
+            div.textContent = operador;
+            div.addEventListener('click', () => updateOperador(operador));
+            dropdownContent.appendChild(div);
+        });
+
+        // Mostrar/ocultar o dropdown
+        dropdownBtn.addEventListener('click', () => {
+            dropdownContent.classList.toggle('show');
+        });
+
+        // Fechar o dropdown se clicar fora dele
+        window.addEventListener('click', (event) => {
+            if (!event.target.matches('#dropdownBtn')) {
+                if (dropdownContent.classList.contains('show')) {
+                    dropdownContent.classList.remove('show');
+                }
             }
         });
 

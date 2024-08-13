@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Texto e Entrega Cliente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            width: 90%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ff00;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: #333;
+            color: #fff;
+            spellcheck: true;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            border: 2px solid #444;
+            color: #b0bec5;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        button.selected {
+            background-color: #00bcd4;
+            border-color: #00bcd4;
+            color: #fff;
+            transform: scale(1.05);
+        }
+        button.selected::after {
+            content: '✔';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-group button {
+            flex: 1 1 calc(50% - 10px);
+            max-width: 48%;
+        }
+        #generateBtn, #copyBtn, .btn-copy {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: #fff;
+        }
+        #generateBtn:hover, #copyBtn:hover, .btn-copy:hover {
+            background-color: #0056b3;
+        }
+        #output, #result {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .message, .notification {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+            text-align: center;
+        }
+        .message.success, .notification {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .message.error, .notification.error {
+            background-color: #f44336;
+            color: #fff;
+        }
+        .dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .dropbtn {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #1e1e1e;
+            min-width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .dropdown-content div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown-content div:hover {
+            background-color: #333;
+        }
+        .show {
+            display: block;
+        }
+        @media (max-width: 600px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Gerador de Texto -->
+    <div class="container">
+        <h1>Gerador de Texto</h1>
+        <div class="btn-group">
+            <button id="bomDiaBtn">Bom dia</button>
+            <button id="boaTardeBtn">Boa tarde</button>
+        </div>
+        <label for="operador">Operador:</label>
+        <div class="dropdown">
+            <button id="dropdownBtn" class="dropbtn">Selecione o Operador</button>
+            <div id="dropdownContent" class="dropdown-content">
+                <!-- Lista de operadores -->
+            </div>
+        </div>
+        <input type="text" id="operador" spellcheck="true" readonly>
+        <label for="clienteGerador">Nome do Cliente:</label>
+        <input type="text" id="clienteGerador" spellcheck="true">
+        <label for="osGerador">Número da OS:</label>
+        <input type="text" id="osGerador" spellcheck="true">
+        <label for="pedidoGerador">Pedido:</label>
+        <input type="text" id="pedidoGerador" spellcheck="true">
+        <label for="versaoGerador">Versão:</label>
+        <input type="text" id="versaoGerador" spellcheck="true">
+        <label for="erro">Descreva o Erro:</label>
+        <textarea id="erro" rows="4" spellcheck="true"></textarea>
+        <button id="generateBtn">Gerar Texto</button>
+        <button id="copyBtn">Copiar Texto</button>
+        <div id="output"></div>
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <!-- Entrega Cliente -->
+    <div class="container">
+        <h1>Entrega Cliente</h1>
+        <div class="form-group">
+            <label for="clienteEntrega">Cliente:</label>
+            <input type="text" id="clienteEntrega" required>
+        </div>
+        <div class="form-group btn-group">
+            <label>Material:</label>
+            <button type="button" data-value="ESXR" onclick="selectOption('material', 'ESXR', this)">ESXR</button>
+            <button type="button" data-value="NX" onclick="selectOption('material', 'NX', this)">NX</button>
+        </div>
+        <div class="form-group">
+            <label for="osEntrega">Número da OS:</label>
+            <input type="text" id="osEntrega" required>
+        </div>
+        <div class="form-group">
+            <label for="pedidoEntrega">Pedido:</label>
+            <input type="text" id="pedidoEntrega" required>
+        </div>
+        <div class="form-group">
+            <label for="versaoEntrega">Versão:</label>
+            <input type="text" id="versaoEntrega" required>
+        </div>
+        <div class="form-group">
+            <label>Hora da Entrega:</label>
+            <div class="btn-group">
+                <button type="button" data-value="Hoje Primeira Rota" onclick="selectOption('entrega', 'Hoje Primeira Rota', this)">Hoje Primeira Rota</button>
+                <button type="button" data-value="Hoje Última Rota" onclick="selectOption('entrega', 'Hoje Última Rota', this)">Hoje Última Rota</button>
+                <button type="button" data-value="Amanhã Primeira Rota" onclick="selectOption('entrega', 'Amanhã Primeira Rota', this)">Amanhã Primeira Rota</button>
+                <button type="button" data-value="Amanhã Última Rota" onclick="selectOption('entrega', 'Amanhã Última Rota', this)">Amanhã Última Rota</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Está na Gravação:</label>
+            <div class="btn-group">
+                <button type="button" data-value="Sim" onclick="selectOption('gravacao', 'Está na gravação', this)">Sim</button>
+                <button type="button" data-value="Não" onclick="selectOption('gravacao', '')">Não</button>
+            </div>
+        </div>
+        <button type="button" onclick="generateTextEntrega()">Gerar Texto</button>
+        <button type="button" class="btn-copy" onclick="copyTextEntrega()">Copiar Texto</button>
+        <div id="result"></div>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const operadores = ['Alisson', 'Bruna', 'Eder', 'Gabriel', 'Heriton', 'Jessica', 'Luciano', 'Lucas', 'Renato', 'Shelry'];
+        
+        // Gerador de Texto
+        const bomDiaBtn = document.getElementById('bomDiaBtn');
+        const boaTardeBtn = document.getElementById('boaTardeBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const operadorInput = document.getElementById('operador');
+        const clienteGeradorInput = document.getElementById('clienteGerador');
+        const osGeradorInput = document.getElementById('osGerador');
+        const pedidoGeradorInput = document.getElementById('pedidoGerador');
+        const versaoGeradorInput = document.getElementById('versaoGerador');
+        const erroInput = document.getElementById('erro');
+        const outputDiv = document.getElementById('output');
+        const notificationDiv = document.getElementById('notification');
+        const dropdownBtn = document.getElementById('dropdownBtn');
+        const dropdownContent = document.getElementById('dropdownContent');
+        
+        let saudacao = '';
+
+        function updateSaudacao(selectedBtn, otherBtn) {
+            saudacao = selectedBtn === bomDiaBtn ? 'Bom dia' : 'Boa tarde';
+            selectedBtn.classList.add('selected');
+            otherBtn.classList.remove('selected');
+        }
+
+        function updateOperador(operador) {
+            operadorInput.value = operador;
+            dropdownContent.classList.remove('show');
+            dropdownBtn.textContent = operador;
+        }
+
+        bomDiaBtn.addEventListener('click', () => {
+            updateSaudacao(bomDiaBtn, boaTardeBtn);
+        });
+
+        boaTardeBtn.addEventListener('click', () => {
+            updateSaudacao(boaTardeBtn, bomDiaBtn);
+        });
+
+        generateBtn.addEventListener('click', () => {
+            const operador = operadorInput.value.trim();
+            const cliente = clienteGeradorInput.value.trim();
+            const os = osGeradorInput.value.trim();
+            const pedido = pedidoGeradorInput.value.trim();
+            const versao = versaoGeradorInput.value.trim();
+            const erro = erroInput.value.trim();
+
+            if (operador && cliente && os && pedido && versao && erro) {
+                const texto = `${saudacao} ${operador}.\n          ${cliente}\nOS ${os} - v${versao} - p${pedido}\n- ${erro}`;
+                outputDiv.innerText = texto;
+                notificationDiv.className = 'notification';
+                notificationDiv.innerText = 'Texto gerado com sucesso!';
+                notificationDiv.style.display = 'block';
+            } else {
+                notificationDiv.className = 'notification error';
+                notificationDiv.innerText = 'Por favor, preencha todos os campos.';
+                notificationDiv.style.display = 'block';
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = outputDiv.innerText;
+            if (textToCopy) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    notificationDiv.className = 'notification';
+                    notificationDiv.innerText = 'Texto copiado para a área de transferência!';
+                    notificationDiv.style.display = 'block';
+                }).catch(err => {
+                    console.error('Erro ao copiar texto: ', err);
+                });
+            } else {
+                notificationDiv.className = 'notification error';
+                notificationDiv.innerText = 'Nenhum texto para copiar.';
+                notificationDiv.style.display = 'block';
+            }
+        });
+
+        operadores.forEach(operador => {
+            const div = document.createElement('div');
+            div.textContent = operador;
+            div.addEventListener('click', () => updateOperador(operador));
+            dropdownContent.appendChild(div);
+        });
+
+        dropdownBtn.addEventListener('click', () => {
+            dropdownContent.classList.toggle('show');
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.matches('#dropdownBtn')) {
+                if (dropdownContent.classList.contains('show')) {
+                    dropdownContent.classList.remove('show');
+                }
+            }
+        });
+
+        setTimeout(() => {
+            notificationDiv.style.display = 'none';
+        }, 5000);
+
+        // Entrega Cliente
+        const selectedOptions = {
+            material: '',
+            entrega: '',
+            gravacao: ''
+        };
+
+        function selectOption(type, value, buttonElement) {
+            document.querySelectorAll(`.btn-group button[data-value="${selectedOptions[type]}"]`).forEach(button => {
+                button.classList.remove('selected');
+            });
+            buttonElement.classList.add('selected');
+            selectedOptions[type] = value;
+        }
+
+        function generateTextEntrega() {
+            const cliente = document.getElementById('clienteEntrega').value.trim();
+            const os = document.getElementById('osEntrega').value.trim();
+            const pedido = document.getElementById('pedidoEntrega').value.trim();
+            const versao = document.getElementById('versaoEntrega').value.trim();
+
+            if (!cliente || !os || !pedido || !versao) {
+                showMessage('error', 'Por favor, preencha todos os campos.');
+                return;
+            }
+
+            const material = selectedOptions.material || '';
+            const entrega = selectedOptions.entrega || '';
+            const gravacao = selectedOptions.gravacao || '';
+
+            const resultText = `${cliente} - ${material}\nOS: ${os} V:${versao} P:${pedido}\n${entrega}\n${gravacao}`;
+            document.getElementById('result').innerText = resultText;
+            showMessage('success', 'Texto gerado com sucesso!');
+        }
+
+        function copyTextEntrega() {
+            const resultText = document.getElementById('result').innerText;
+            if (resultText) {
+                navigator.clipboard.writeText(resultText).then(() => {
+                    showMessage('success', 'Texto copiado para a área de transferência!');
+                }, (err) => {
+                    showMessage('error', 'Falha ao copiar o texto.');
+                });
+            } else {
+                showMessage('error', 'Nenhum texto para copiar.');
+            }
+        }
+
+        function showMessage(type, text) {
+            const messageElement = document.getElementById('message');
+            messageElement.className = `message ${type}`;
+            messageElement.innerText = text;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

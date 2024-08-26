@@ -146,6 +146,10 @@
                 <input type="text" id="versao" required>
             </div>
             <div class="form-group">
+                <label for="cores">Quantidade de Cores:</label>
+                <input type="text" id="cores" required>
+            </div>
+            <div class="form-group">
                 <label>Hora da Entrega:</label>
                 <div class="btn-group">
                     <button type="button" data-value="Hoje Primeira Rota" onclick="selectOption('entrega', 'Hoje Primeira Rota', this)">Hoje Primeira Rota</button>
@@ -191,8 +195,9 @@
             const os = document.getElementById('os').value.trim();
             const pedido = document.getElementById('pedido').value.trim();
             const versao = document.getElementById('versao').value.trim();
+            const cores = document.getElementById('cores').value.trim();
 
-            if (!cliente || !os || !pedido || !versao) {
+            if (!cliente || !os || !pedido || !versao || !cores) {
                 showMessage('error', 'Por favor, preencha todos os campos.');
                 return;
             }
@@ -201,7 +206,7 @@
             const entrega = selectedOptions.entrega || '';
             const gravacao = selectedOptions.gravacao || '';
 
-            const resultText = `${cliente} - ${material}\nOS: ${os} V:${versao} P:${pedido}\n${entrega}\n${gravacao}`;
+            const resultText = `${cliente} - ${material}\nOS: ${os} V:${versao} P:${pedido}\nQuantidade de Cores: ${cores}\n${entrega}\n${gravacao}`;
             document.getElementById('result').innerText = resultText;
             showMessage('success', 'Texto gerado com sucesso!');
         }
